@@ -25,7 +25,8 @@ HetznerSubnets = 'Subnets/IPv4/hetzner.lst'
 OVHSubnets = 'Subnets/IPv4/ovh.lst'
 DigitalOceanSubnets = 'Subnets/IPv4/digitalocean.lst'
 CloudfrontSubnets = 'Subnets/IPv4/cloudfront.lst'
-ExcludeServices = {"telegram.lst", "cloudflare.lst", "google_ai.lst", "google_play.lst", 'hetzner.lst', 'ovh.lst', 'digitalocean.lst', 'cloudfront.lst', 'hodca.lst'}
+GoogleSubnets = 'Subnets/IPv4/google_echo.lst'
+ExcludeServices = {"telegram.lst", "cloudflare.lst", "google_ai.lst", "google_play.lst", 'hetzner.lst', 'ovh.lst', 'digitalocean.lst', 'cloudfront.lst', 'google_echo.lst', 'hodca.lst'}
 
 def raw(src, out):
     domains = set()
@@ -491,6 +492,7 @@ if __name__ == '__main__':
     generate_srs_combined(OVHSubnets, "Services/ovh.lst")
     generate_srs_combined(DigitalOceanSubnets, "Services/digitalocean.lst")
     generate_srs_combined(CloudfrontSubnets, "Services/cloudfront.lst")
+    generate_srs_combined(GoogleSubnets, "Services/google_echo.lst")
 
     # Xray domains
     prepare_dat_domains(russia_inside, 'russia-inside', directories)

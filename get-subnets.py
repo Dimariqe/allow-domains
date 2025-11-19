@@ -5,6 +5,7 @@ import urllib.request
 import os
 import shutil
 import json
+import sys
 
 BGP_TOOLS_URL = 'https://bgp.tools/table.txt'
 HEADERS = { 'User-Agent': 'itdog.info - hi@itdog.info' }
@@ -26,6 +27,7 @@ HETZNER = 'hetzner.lst'
 OVH = 'ovh.lst'
 DIGITALOCEAN = 'digitalocean.lst'
 CLOUDFRONT = 'cloudfront.lst'
+GOOGLE = 'google.lst'
 
 # From https://iplist.opencck.org/
 DISCORD_VOICE_V4='https://iplist.opencck.org/?format=text&data=cidr4&site=discord.gg&site=discord.media'
@@ -37,6 +39,10 @@ TELEGRAM_CIDR_URL = 'https://core.telegram.org/resources/cidr.txt'
 
 CLOUDFLARE_V4='https://www.cloudflare.com/ips-v4'
 CLOUDFLARE_V6='https://www.cloudflare.com/ips-v6'
+
+GOOGLE_GOOG_URL='https://www.gstatic.com/ipranges/goog.json'
+GOOGLE_CLOUD_URL='https://www.gstatic.com/ipranges/cloud.json'
+GOOGLE_GOOGLEBOT_URL='https://developers.google.com/search/apis/ipranges/googlebot.json'
 
 AWS_IP_RANGES_URL='https://ip-ranges.amazonaws.com/ip-ranges.json'
 
@@ -127,6 +133,43 @@ def download_aws_cloudfront_subnets():
     
     return ipv4_subnets, ipv6_subnets
 
+def download_google_subnets():
+    ipv4_subnets = []
+    ipv6_subnets = []
+    
+    urls = [GOOGLE_GOOG_URL, GOOGLE_CLOUD_URL, GOOGLE_GOOGLEBOT_URL]
+    
+    for url in urls:
+        req = urllib.request.Request(url, headers=HEADERS)
+        try:
+            with urllib.request.urlopen(req) as response:
+                if response.status == 200:
+                    data = json.loads(response.read().decode('utf-8'))
+                    
+                    # Handle different JSON structures
+                    prefixes = data.get('prefixes', [])
+                    
+                    for prefix in prefixes:
+                        if 'ipv4Prefix' in prefix and prefix['ipv4Prefix']:
+                            ipv4_subnets.append(prefix['ipv4Prefix'])
+                        if 'ipv6Prefix' in prefix and prefix['ipv6Prefix']:
+                            ipv6_subnets.append(prefix['ipv6Prefix'])
+                            
+        except Exception as e:
+            print(f"Error downloading Google ranges from {url}: {e}")
+    
+    # Remove duplicates and sort
+    ipv4_subnets = list(set(ipv4_subnets))
+    ipv6_subnets = list(set(ipv6_subnets))
+    
+    # Merge overlapping subnets
+    if ipv4_subnets:
+        ipv4_subnets = subnet_summarization(ipv4_subnets)
+    if ipv6_subnets:
+        ipv6_subnets = subnet_summarization(ipv6_subnets)
+    
+    return ipv4_subnets, ipv6_subnets
+
 def write_subnets_to_file(subnets, filename):
     with open(filename, 'w') as file:
         for subnet in subnets:
@@ -190,6 +233,11 @@ if __name__ == '__main__':
     ipv4_cloudfront, ipv6_cloudfront = download_aws_cloudfront_subnets()
     write_subnets_to_file(ipv4_cloudfront, f'{IPv4_DIR}/{CLOUDFRONT}')
     write_subnets_to_file(ipv6_cloudfront, f'{IPv6_DIR}/{CLOUDFRONT}')
+
+    # Google
+    ipv4_google, ipv6_google = download_google_subnets()
+    write_subnets_to_file(ipv4_google, f'{IPv4_DIR}/{GOOGLE}')
+    write_subnets_to_file(ipv6_google, f'{IPv6_DIR}/{GOOGLE}')
 
     # Legacy name
     copy_file_legacy(f'{IPv4_DIR}/{META}')
