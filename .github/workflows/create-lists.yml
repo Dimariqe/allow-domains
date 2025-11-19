@@ -11,6 +11,7 @@ on:
       - convert.py
   schedule:
     - cron: '29 8 * * 1'
+  workflow_dispatch:
 
 permissions:
   contents: write
