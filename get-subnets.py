@@ -27,7 +27,7 @@ HETZNER = 'hetzner.lst'
 OVH = 'ovh.lst'
 DIGITALOCEAN = 'digitalocean.lst'
 CLOUDFRONT = 'cloudfront.lst'
-GOOGLE = 'google.lst'
+GOOGLE = 'google_echo.lst'
 
 # From https://iplist.opencck.org/
 DISCORD_VOICE_V4='https://iplist.opencck.org/?format=text&data=cidr4&site=discord.gg&site=discord.media'
