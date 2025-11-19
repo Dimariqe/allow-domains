@@ -244,6 +244,7 @@
 /ip dns static add name=e-hentai.org type=FWD address-list=allow-domains match-subdomain=yes forward-to=localhost
 /ip dns static add name=e621.net type=FWD address-list=allow-domains match-subdomain=yes forward-to=localhost
 /ip dns static add name=easydmarc.com type=FWD address-list=allow-domains match-subdomain=yes forward-to=localhost
+/ip dns static add name=echo.bhhyddfghfht.google.com type=FWD address-list=allow-domains match-subdomain=yes forward-to=localhost
 /ip dns static add name=echofm.online type=FWD address-list=allow-domains match-subdomain=yes forward-to=localhost
 /ip dns static add name=editorx.com type=FWD address-list=allow-domains match-subdomain=yes forward-to=localhost
 /ip dns static add name=edu-cisco.org type=FWD address-list=allow-domains match-subdomain=yes forward-to=localhost
