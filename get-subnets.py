@@ -18,6 +18,7 @@ AS_TWITTER = ['13414']
 AS_HETZNER = ['24940']
 AS_OVH = ['16276']
 AS_DIGITALOCEAN = ['14061']
+AS_AMAZON = ['16509','14618','7224','8987','801','19047','36263','21664','62785','401395']
 
 META = 'meta.lst'
 TWITTER = 'twitter.lst'
@@ -28,6 +29,7 @@ OVH = 'ovh.lst'
 DIGITALOCEAN = 'digitalocean.lst'
 CLOUDFRONT = 'cloudfront.lst'
 GOOGLE = 'google_echo.lst'
+AMAZON = 'amazon.lst'
 
 # From https://iplist.opencck.org/
 DISCORD_VOICE_V4='https://iplist.opencck.org/?format=text&data=cidr4&site=discord.gg&site=discord.media'
@@ -45,6 +47,7 @@ GOOGLE_CLOUD_URL='https://www.gstatic.com/ipranges/cloud.json'
 GOOGLE_GOOGLEBOT_URL='https://developers.google.com/search/apis/ipranges/googlebot.json'
 
 AWS_IP_RANGES_URL='https://ip-ranges.amazonaws.com/ip-ranges.json'
+ACF_IP_RANGES_URL='https://d7uri8nf7uskq.cloudfront.net/tools/list-cloudfront-ips'
 
 subnet_list = []
 
@@ -170,6 +173,36 @@ def download_google_subnets():
     
     return ipv4_subnets, ipv6_subnets
 
+def download_amazon_subnets():
+    ipv4_subnets = []
+    ipv6_subnets = []
+    ipv4_subnets, ipv6_subnets = process_subnets(subnet_list, AS_AMAZON)
+    req = urllib.request.Request(AWS_IP_RANGES_URL, headers=HEADERS)
+    try:
+        with urllib.request.urlopen(req) as response:
+            if response.status == 200:
+                data = json.loads(response.read().decode('utf-8'))
+                
+                for prefix in data.get('prefixes', []):
+                        ipv4_subnets.append(prefix['ip_prefix'])
+                
+                for prefix in data.get('ipv6_prefixes', []):
+                        ipv6_subnets.append(prefix['ipv6_prefix'])
+        with urllib.request.urlopen(req) as response:
+            if response.status == 200:
+                data = json.loads(response.read().decode('utf-8'))
+                
+                for cidr in data.get('CLOUDFRONT_GLOBAL_IP_LIST', []):
+                        ipv4_subnets.append(cidr)
+                        
+    except Exception as e:
+        print(f"Error downloading Amazon ranges: {e}")
+    
+    ipv4_merged = subnet_summarization(ipv4_subnets)
+    ipv6_merged = subnet_summarization(ipv6_subnets)
+
+    return ipv4_merged, ipv6_merged
+
 def write_subnets_to_file(subnets, filename):
     with open(filename, 'w') as file:
         for subnet in subnets:
@@ -238,6 +271,11 @@ if __name__ == '__main__':
     ipv4_google, ipv6_google = download_google_subnets()
     write_subnets_to_file(ipv4_google, f'{IPv4_DIR}/{GOOGLE}')
     write_subnets_to_file(ipv6_google, f'{IPv6_DIR}/{GOOGLE}')
+
+    # Amazon
+    ipv4_amazon, ipv6_amazon = download_amazon_subnets()
+    write_subnets_to_file(ipv4_amazon, f'{IPv4_DIR}/{AMAZON}')
+    write_subnets_to_file(ipv6_amazon, f'{IPv6_DIR}/{AMAZON}')
 
     # Legacy name
     copy_file_legacy(f'{IPv4_DIR}/{META}')

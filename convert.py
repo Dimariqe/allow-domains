@@ -26,7 +26,8 @@ OVHSubnets = 'Subnets/IPv4/ovh.lst'
 DigitalOceanSubnets = 'Subnets/IPv4/digitalocean.lst'
 CloudfrontSubnets = 'Subnets/IPv4/cloudfront.lst'
 GoogleSubnets = 'Subnets/IPv4/google_echo.lst'
-ExcludeServices = {"telegram.lst", "cloudflare.lst", "google_ai.lst", "google_play.lst", 'hetzner.lst', 'ovh.lst', 'digitalocean.lst', 'cloudfront.lst', 'google_echo.lst', 'hodca.lst'}
+AmazonSubnets = 'Subnets/IPv4/amazon.lst'
+ExcludeServices = {"telegram.lst", "cloudflare.lst", "google_ai.lst", "google_echo.lst", "google_play.lst", 'hetzner.lst', 'ovh.lst', 'digitalocean.lst', 'cloudfront.lst', 'google_echo.lst', 'amazon.lst', 'hodca.lst'}
 
 def raw(src, out):
     domains = set()
@@ -322,7 +323,7 @@ def generate_srs_combined(input_subnets_file, input_domains_file, output_json_di
         with open(input_subnets_file, 'r', encoding='utf-8') as file:
             subnets = [line.strip() for line in file if line.strip()]
 
-    if input_subnets_file == "Subnets/IPv4/discord.lst":
+    if input_subnets_file == DiscordSubnets:
         data = {
             "version": 3,
             "rules": [
@@ -333,6 +334,20 @@ def generate_srs_combined(input_subnets_file, input_domains_file, output_json_di
                     "network": ["udp"],
                     "ip_cidr": subnets,
                     "port_range": ["50000:65535"]
+                }
+            ]
+        }
+    elif input_subnets_file == GoogleSubnets:
+        data = {
+            "version": 3,
+            "rules": [
+                {
+                    "domain_suffix": domains
+                },
+                {
+                    "network": ["tcp"],
+                    "ip_cidr": subnets,
+                    "port": ["7"]
                 }
             ]
         }
@@ -493,6 +508,7 @@ if __name__ == '__main__':
     generate_srs_combined(DigitalOceanSubnets, "Services/digitalocean.lst")
     generate_srs_combined(CloudfrontSubnets, "Services/cloudfront.lst")
     generate_srs_combined(GoogleSubnets, "Services/google_echo.lst")
+    generate_srs_combined(AmazonSubnets, "Services/amazon.lst")
 
     # Xray domains
     prepare_dat_domains(russia_inside, 'russia-inside', directories)
