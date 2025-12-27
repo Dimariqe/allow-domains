@@ -19,6 +19,7 @@ AS_HETZNER = ['24940']
 AS_OVH = ['16276']
 AS_DIGITALOCEAN = ['14061']
 AS_AMAZON = ['16509','14618','7224','8987','801','19047','36263','21664','62785','401395']
+AS_DATACAMP = ['60068', '212238', '211612']
 
 META = 'meta.lst'
 TWITTER = 'twitter.lst'
@@ -30,6 +31,7 @@ DIGITALOCEAN = 'digitalocean.lst'
 CLOUDFRONT = 'cloudfront.lst'
 GOOGLE = 'google_echo.lst'
 AMAZON = 'amazon.lst'
+DATACAMP = 'datacamp.lst'
 
 # From https://iplist.opencck.org/
 DISCORD_VOICE_V4='https://iplist.opencck.org/?format=text&data=cidr4&site=discord.gg&site=discord.media'
@@ -276,6 +278,11 @@ if __name__ == '__main__':
     ipv4_amazon, ipv6_amazon = download_amazon_subnets()
     write_subnets_to_file(ipv4_amazon, f'{IPv4_DIR}/{AMAZON}')
     write_subnets_to_file(ipv6_amazon, f'{IPv6_DIR}/{AMAZON}')
+
+    # Datacamp
+    ipv4_merged_datacamp, ipv6_merged_datacamp = process_subnets(subnet_list, AS_DATACAMP)
+    write_subnets_to_file(ipv4_merged_datacamp, f'{IPv4_DIR}/{DATACAMP}')
+    write_subnets_to_file(ipv6_merged_datacamp, f'{IPv6_DIR}/{DATACAMP}')
 
     # Legacy name
     copy_file_legacy(f'{IPv4_DIR}/{META}')
