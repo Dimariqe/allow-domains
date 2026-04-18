@@ -340,7 +340,7 @@ if __name__ == '__main__':
     google_echo_domains = lines_from_file('Services/google_echo.lst')
     srs_rule('google_echo', [
         {"domain_suffix": google_echo_domains},
-        {"network": ["tcp"], "ip_cidr": google_echo_subnets, "port": ["7"]},
+        {"network": ["tcp"], "ip_cidr": google_echo_subnets, "port": [7]},
     ])
 
     # Mihomo main
