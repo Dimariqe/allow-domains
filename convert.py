@@ -103,6 +103,8 @@ def lines_from_file(filepath):
         return [line.strip() for line in f if line.strip()]
 
 def compile_mrs(domains, name, mrs_dir='MRS', behavior='domain'):
+    if not domains:
+        return
     os.makedirs(mrs_dir, exist_ok=True)
 
     txt_path = os.path.join(mrs_dir, f"{name}.txt")
