@@ -18,6 +18,7 @@ ASN_SERVICES = {
     'hetzner.lst': ['24940'],
     'ovh.lst': ['16276'],
     'digitalocean.lst': ['14061'],
+    'datacamp.lst': ['60068', '212238', '211612'],
 }
 
 ASN_TELEGRAM = ['44907', '59930', '62014', '62041', '211157']
@@ -29,6 +30,8 @@ TELEGRAM_V4 = [
 
 CLOUDFLARE = 'cloudflare.lst'
 CLOUDFRONT = 'cloudfront.lst'
+GOOGLE_ECHO = 'google_echo.lst'
+AMAZON = 'amazon.lst'
 
 # From https://iplist.opencck.org/
 DISCORD_VOICE_V4='https://iplist.opencck.org/?format=text&data=cidr4&site=discord.gg&site=discord.media'
@@ -40,6 +43,12 @@ TELEGRAM_CIDR_URL = 'https://core.telegram.org/resources/cidr.txt'
 
 CLOUDFLARE_V4='https://www.cloudflare.com/ips-v4'
 CLOUDFLARE_V6='https://www.cloudflare.com/ips-v6'
+
+GOOGLE_GOOG_URL='https://www.gstatic.com/ipranges/goog.json'
+GOOGLE_CLOUD_URL='https://www.gstatic.com/ipranges/cloud.json'
+GOOGLE_GOOGLEBOT_URL='https://developers.google.com/search/apis/ipranges/googlebot.json'
+
+ASN_AMAZON = ['16509','14618','7224','8987','801','19047','36263','21664','62785','401395']
 
 # https://support.google.com/a/answer/1279090
 GOOGLE_MEET = 'google_meet.lst'
@@ -140,6 +149,58 @@ def download_aws_cloudfront_subnets():
 
     return ipv4_subnets, ipv6_subnets
 
+
+def download_google_subnets():
+    ipv4_subnets = []
+    ipv6_subnets = []
+
+    urls = [GOOGLE_GOOG_URL, GOOGLE_CLOUD_URL, GOOGLE_GOOGLEBOT_URL]
+
+    for url in urls:
+        req = make_request(url)
+        try:
+            with urllib.request.urlopen(req, timeout=30) as response:
+                data = json.loads(response.read().decode('utf-8'))
+                prefixes = data.get('prefixes', [])
+                for prefix in prefixes:
+                    if 'ipv4Prefix' in prefix and prefix['ipv4Prefix']:
+                        ipv4_subnets.append(prefix['ipv4Prefix'])
+                    if 'ipv6Prefix' in prefix and prefix['ipv6Prefix']:
+                        ipv6_subnets.append(prefix['ipv6Prefix'])
+        except Exception as e:
+            print(f"Error downloading Google ranges from {url}: {e}")
+            sys.exit(1)
+
+    ipv4_subnets = list(set(ipv4_subnets))
+    ipv6_subnets = list(set(ipv6_subnets))
+
+    if ipv4_subnets:
+        ipv4_subnets = subnet_summarization(ipv4_subnets)
+    if ipv6_subnets:
+        ipv6_subnets = subnet_summarization(ipv6_subnets)
+
+    return ipv4_subnets, ipv6_subnets
+
+def download_amazon_subnets():
+    ipv4_asn, ipv6_asn = fetch_asn_prefixes(ASN_AMAZON)
+
+    ipv4_subnets = list(ipv4_asn)
+    ipv6_subnets = list(ipv6_asn)
+
+    req = make_request(AWS_CIDR_URL)
+    try:
+        with urllib.request.urlopen(req, timeout=30) as response:
+            data = json.loads(response.read().decode('utf-8'))
+            for prefix in data.get('prefixes', []):
+                ipv4_subnets.append(prefix['ip_prefix'])
+            for prefix in data.get('ipv6_prefixes', []):
+                ipv6_subnets.append(prefix['ipv6_prefix'])
+    except Exception as e:
+        print(f"Error downloading Amazon ranges: {e}")
+        sys.exit(1)
+
+    return subnet_summarization(ipv4_subnets), subnet_summarization(ipv6_subnets)
+
 def write_subnets_to_file(subnets, filename):
     with open(filename, 'w') as file:
         for subnet in subnets:
@@ -189,6 +250,18 @@ if __name__ == '__main__':
     ipv4_cloudfront, ipv6_cloudfront = download_aws_cloudfront_subnets()
     write_subnets_to_file(ipv4_cloudfront, f'{IPv4_DIR}/{CLOUDFRONT}')
     write_subnets_to_file(ipv6_cloudfront, f'{IPv6_DIR}/{CLOUDFRONT}')
+
+    # Google Echo
+    print(f'Fetching {GOOGLE_ECHO}...')
+    ipv4_google, ipv6_google = download_google_subnets()
+    write_subnets_to_file(ipv4_google, f'{IPv4_DIR}/{GOOGLE_ECHO}')
+    write_subnets_to_file(ipv6_google, f'{IPv6_DIR}/{GOOGLE_ECHO}')
+
+    # Amazon
+    print(f'Fetching {AMAZON}...')
+    ipv4_amazon, ipv6_amazon = download_amazon_subnets()
+    write_subnets_to_file(ipv4_amazon, f'{IPv4_DIR}/{AMAZON}')
+    write_subnets_to_file(ipv6_amazon, f'{IPv6_DIR}/{AMAZON}')
 
     # Legacy copies with capitalized names (e.g. meta.lst -> Meta.lst)
     LEGACY_FILES = ['meta.lst', 'twitter.lst', 'discord.lst']

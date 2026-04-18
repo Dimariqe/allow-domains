@@ -22,8 +22,9 @@ SUBNET_SERVICES = [
     'discord', 'meta', 'twitter', 'telegram',
     'cloudflare', 'hetzner', 'ovh', 'digitalocean',
     'cloudfront', 'roblox', 'google_meet',
+    'google_echo', 'amazon', 'datacamp',
 ]
-ExcludeServices = {"telegram.lst", "cloudflare.lst", "google_ai.lst", "google_play.lst", 'hetzner.lst', 'ovh.lst', 'digitalocean.lst', 'cloudfront.lst', 'hodca.lst', 'roblox.lst', 'google_meet.lst'}
+ExcludeServices = {"telegram.lst", "cloudflare.lst", "google_ai.lst", "google_play.lst", 'hetzner.lst', 'ovh.lst', 'digitalocean.lst', 'cloudfront.lst', 'hodca.lst', 'roblox.lst', 'google_meet.lst', 'google_echo.lst', 'amazon.lst', 'datacamp.lst'}
 
 def collect_files(src):
     files = []
@@ -143,7 +144,7 @@ def srs_rule(name, rules):
     compile_srs({"version": 3, "rules": rules}, name)
 
 def generate_srs_for_categories(directories):
-    exclude = {"meta", "twitter", "discord", "telegram", "hetzner", "ovh", "digitalocean", "cloudfront", "roblox", "google_meet"}
+    exclude = {"meta", "twitter", "discord", "telegram", "hetzner", "ovh", "digitalocean", "cloudfront", "roblox", "google_meet", "google_echo", "amazon", "datacamp"}
 
     for directory in directories:
         for filename in os.listdir(directory):
@@ -320,7 +321,7 @@ if __name__ == '__main__':
 
     # Sing-box subnets + domains
     for service in SUBNET_SERVICES:
-        if service == 'discord':
+        if service in ('discord', 'google_echo'):
             continue
         subnets = lines_from_file(f'Subnets/IPv4/{service}.lst')
         domains = lines_from_file(f'Services/{service}.lst')
@@ -332,6 +333,14 @@ if __name__ == '__main__':
     srs_rule('discord', [
         {"domain_suffix": discord_domains},
         {"network": ["udp"], "ip_cidr": discord_subnets, "port_range": ["50000:65535"]},
+    ])
+
+    # Google Echo (domains + TCP subnets on echo port)
+    google_echo_subnets = lines_from_file('Subnets/IPv4/google_echo.lst')
+    google_echo_domains = lines_from_file('Services/google_echo.lst')
+    srs_rule('google_echo', [
+        {"domain_suffix": google_echo_domains},
+        {"network": ["tcp"], "ip_cidr": google_echo_subnets, "port": ["7"]},
     ])
 
     # Mihomo main
