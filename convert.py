@@ -340,10 +340,13 @@ if __name__ == '__main__':
     # Google Echo (domains + TCP subnets on echo port)
     google_echo_subnets = lines_from_file('Subnets/IPv4/google_echo.lst')
     google_echo_domains = lines_from_file('Services/google_echo.lst')
-    srs_rule('google_echo', [
-        {"domain_suffix": google_echo_domains},
-        {"network": ["tcp"], "ip_cidr": google_echo_subnets, "port": [7]},
-    ])
+    google_echo_rules = []
+    if google_echo_domains:
+        google_echo_rules.append({"domain_suffix": google_echo_domains})
+    if google_echo_subnets:
+        google_echo_rules.append({"network": ["tcp"], "ip_cidr": google_echo_subnets, "port": [7]})
+    if google_echo_rules:
+        srs_rule('google_echo', google_echo_rules)
 
     # Mihomo main
     to_mrs = lambda domains: [f'+.{d.lstrip(".")}' for d in domains]
