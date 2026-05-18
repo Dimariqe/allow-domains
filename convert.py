@@ -332,9 +332,11 @@ if __name__ == '__main__':
     # Discord (domains + UDP subnets on high ports)
     discord_subnets = lines_from_file('Subnets/IPv4/discord.lst')
     discord_domains = lines_from_file('Services/discord.lst')
+    discord_cf_subnets = ["104.16.0.0/12"]
     srs_rule('discord', [
         {"domain_suffix": discord_domains},
         {"network": ["udp"], "ip_cidr": discord_subnets, "port_range": ["50000:65535"]},
+        {"network": ["udp"], "ip_cidr": discord_cf_subnets, "port_range": ["19000:20000"]},
     ])
 
     # Google Echo (domains + TCP subnets on echo port)
